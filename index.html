@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#7C4DFF">
+<link rel="manifest" href="manifest.json">
+<title>FaithTok V4.2 • Responsive</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--p:#7C4DFF;--p2:#B388FF;--bg:#000;--card:#121212;--card2:#1E1E1E;--border:#2A2A2A;--border2:#3A3A3A;--muted:#9A9A9A;--text:#fff;--red:#FF3040;--green:#30D158}
+[data-theme="light"]{--bg:#F8F8FA;--card:#FFFFFF;--card2:#F0F0F2;--border:#E5E5EA;--border2:#D1D1D6;--muted:#8E8E93;--text:#111}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;display:flex;justify-content:center}
+.app{width:100%;max-width:430px;height:100%;background:var(--bg);position:relative;display:flex;flex-direction:column}
+.header{height:56px;padding:0 16px;display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-bottom:1px solid var(--border);z-index:20;flex-shrink:0}
+.logo{font-family:Outfit,sans-serif;font-weight:800;font-size:1.4rem;display:flex;gap:10px;align-items:center}
+.logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--p),var(--p2));border-radius:11px;display:grid;place-items:center;color:#fff;font-size:1.5rem}
+.view{flex:1;overflow:hidden;position:relative}
+#feedView{height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain}
+#feedView::-webkit-scrollbar{display:none}
+.post{height:100%;scroll-snap-align:start;position:relative;overflow:hidden;background:#000}
+.post video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.vignette{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,transparent 30%,rgba(0,0,0,.80) 100%);pointer-events:none}
+.content{position:absolute;bottom:0;left:0;right:0;z-index:3;padding:0 10px 84px 12px;display:flex;align-items:flex-end;gap:8px}
+.left{flex:1;min-width:0;padding-right:10px}
+.right{display:flex;flex-direction:column;gap:18px;align-items:center;margin-right:2px;margin-bottom:4px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--p2));display:grid;place-items:center;font-weight:800;font-size:.75rem;border:2px solid #fff;color:#fff;overflow:hidden;flex-shrink:0;cursor:pointer}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.username{font-weight:700;font-size:.88rem;color:#fff}
+.category{font-size:.60rem;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(124,77,255,.35);color:#D8CCFF;border:1px solid rgba(124,77,255,.4)}
+.caption{font-size:.86rem;line-height:1.3;color:#fff;margin-top:6px;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.action{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.action-btn{width:46px;height:46px;background:rgba(255,255,255,.13);backdrop-filter:blur(18px);border-radius:50%;display:grid;place-items:center;font-size:1.35rem;border:1px solid rgba(255,255,255,.12);color:#fff}
+.action-btn.liked{background:var(--red);border-color:var(--red)}
+.tiktok-profile-btn{width:48px;height:48px;border-radius:50%;border:2px solid #fff;overflow:visible;position:relative;cursor:pointer;background:var(--card2);display:grid;place-items:center;font-weight:800;color:#fff}
+.tiktok-profile-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.follow-plus{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:18px;height:18px;background:var(--p);border-radius:50%;display:grid;place-items:center;font-size:.8rem;font-weight:900;color:#fff;border:2px solid #000;z-index:5}
+.follow-plus.following{background:var(--green);font-size:.65rem}
+.pull-indicator{position:absolute;top:0;left:0;right:0;height:44px;display:grid;place-items:center;color:#fff;font-size:.8rem;font-weight:600;z-index:10;transform:translateY(-44px);transition:.2s;pointer-events:none}
+.bottom{position:absolute;bottom:0;left:0;right:0;height:68px;background:var(--card);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;z-index:20;border-radius:20px 20px 0 0}
+.b-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);cursor:pointer}.b-item.active{color:var(--p)}.b-label{font-size:.62rem;font-weight:600}
+.page{padding:16px;padding-bottom:90px;overflow-y:auto;height:100%;background:var(--bg)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px}
+.input{width:100%;padding:13px 16px;border-radius:14px;border:1px solid var(--border);background:var(--card2);color:var(--text);margin-bottom:12px;outline:none}
+.btn{width:100%;padding:13px;border:0;border-radius:14px;background:var(--text);color:var(--bg);font-weight:700;cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff}
+.btn-sec{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(18px);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.box{background:var(--card);border-top:1px solid var(--border2);border-radius:28px 28px 0 0;padding:22px;width:100%;max-width:430px;max-height:92vh;overflow-y:auto}
+.handle{width:40px;height:5px;background:var(--border2);border-radius:10px;margin:0 auto 16px}
+.toast{position:fixed;top:66px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:100px;font-size:.84rem;font-weight:600;z-index:500;display:none}
+.toast.show{display:block}
+.profile-pic-big{width:110px;height:110px;border-radius:50%;border:4px solid var(--p);background:linear-gradient(135deg,var(--p),var(--p2));display:grid;place-items:center;font-size:2.8rem;color:#fff;margin:0 auto;overflow:hidden;box-shadow:0 8px 24px rgba(124,77,255,.3)}
+.search-item{padding:14px;border-radius:14px;display:flex;align-items:center;gap:12px;cursor:pointer;border:1px solid transparent}
+.s-icon{width:40px;height:40px;background:var(--card2);border-radius:12px;display:grid;place-items:center;font-size:1.2rem;border:1px solid var(--border)}
+.setting-row{padding:16px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.toggle{width:48px;height:28px;background:var(--border2);border-radius:100px;position:relative;cursor:pointer}.toggle.on{background:var(--p)}.toggle-dot{width:24px;height:24px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:.2s}
+.alert-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:700;display:none;align-items:center;justify-content:center;padding:24px}
+.alert-box{background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:24px;width:100%;max-width:340px;text-align:center}
+.alert-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--p),var(--p2));border-radius:50%;display:grid;place-items:center;font-size:1.8rem;color:#fff;margin:0 auto 12px}
+.alert-title{font-family:Outfit;font-weight:800;font-size:1.15rem}.alert-msg{color:var(--muted);font-size:.88rem;margin-top:8px}.alert-actions{display:flex;gap:10px;margin-top:18px}
+.wa-wrapper{display:flex;flex-direction:column;height:100%;background:#0B141A}
+.wa-header{height:58px;background:var(--card);display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.wa-chat-list{flex:1;overflow-y:auto;background:var(--bg);padding:10px 8px;padding-bottom:80px}
+.wa-msg-row{display:flex;gap:8px;margin-bottom:12px;position:relative;transition:.2s}
+.wa-msg-row.me{flex-direction:row-reverse}
+.wa-avatar{width:32px;height:32px;border-radius:50%;background:var(--p);display:grid;place-items:center;color:#fff;font-size:.7rem;overflow:hidden;flex-shrink:0}
+.wa-avatar img{width:100%;height:100%;object-fit:cover}
+.wa-bubble{max-width:76%;background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 0;padding:8px 10px;position:relative}
+.wa-reply-preview{background:rgba(124,77,255,.15);border-left:3px solid var(--p);padding:6px 8px;border-radius:8px;margin-bottom:6px;font-size:.75rem}
+.wa-time{font-size:.62rem;opacity:.7;margin-top:4px;display:flex;gap:8px;align-items:center}
+.wa-like{font-size:.7rem;cursor:pointer;opacity:.8}
+.wa-input-bar{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:8px;display:flex;flex-direction:column;gap:6px;z-index:30}
+.wa-reply-bar{background:var(--card2);border-left:3px solid var(--p);padding:8px 10px;border-radius:10px;display:flex;justify-content:space-between;align-items:center;font-size:.8rem}
+.group-folder{padding:16px;border:1px solid var(--border);border-radius:16px;margin-bottom:10px;background:var(--card2);display:flex;gap:14px;align-items:center;cursor:pointer}
+.group-folder:hover{border-color:var(--p)}
+
+/* ===== RESPONSIVE DESIGN - 3 DEVICES ===== */
+.desktop-left,.desktop-right{display:none}
+@media (min-width:768px) and (max-width:1023px){
+ .app{max-width:720px}
+ .post{height:100%}
+ .content{padding:0 20px 90px 20px}
+ .action-btn{width:52px;height:52px;font-size:1.5rem}
+ .tiktok-profile-btn{width:56px;height:56px}
+ .page{padding:20px}
+}
+@media (min-width:1024px){
+  body{height:100vh;background:#080808}
+ .app{max-width:1400px;flex-direction:row;gap:0;border:1px solid var(--border)}
+ .header{position:absolute;top:0;left:0;right:0;height:60px;z-index:30;background:rgba(0,0,0,.9);backdrop-filter:blur(12px)}
+ .view{margin-top:60px}
+ .bottom{display:none}
+ .desktop-left{display:flex!important;flex-direction:column;width:240px;background:var(--card);border-right:1px solid var(--border);padding:80px 12px 20px 12px;gap:6px;flex-shrink:0;overflow-y:auto}
+ .desktop-right{display:flex!important;flex-direction:column;width:340px;background:var(--card);border-left:1px solid var(--border);padding:80px 16px 20px 16px;gap:12px;flex-shrink:0;overflow-y:auto}
+ .d-nav-item{padding:12px 16px;border-radius:12px;display:flex;gap:12px;align-items:center;cursor:pointer;color:var(--muted);font-weight:600}
+ .d-nav-item.active,.d-nav-item:hover{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+ .d-nav-item.active{color:var(--p);border-color:var(--p)}
+  #feedView{max-width:480px;margin:0 auto;background:#000;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+ .modal{align-items:center}
+ .box{border-radius:24px;max-width:500px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- DESKTOP LEFT NAV -->
+  <div class="desktop-left">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 6px;margin-bottom:10px"><div class="logo-mark">†</div><b style="font-family:Outfit;font-size:1.3rem">FaithTok</b></div>
+    <div class="d-nav-item active" id="d-nav-home" onclick="nav('home')"><span>⌂</span> Home Feed</div>
+    <div class="d-nav-item" id="d-nav-discussion" onclick="nav('discussion')"><span>💬</span> Discussions</div>
+    <div class="d-nav-item" id="d-nav-discover" onclick="nav('discover')"><span>◎</span> Discover</div>
+    <div class="d-nav-item" id="d-nav-profile" onclick="nav('profile')"><span>◍</span> Profile</div>
+    <div class="d-nav-item" onclick="openUpload()"><span style="background:var(--text);color:var(--bg);width:28px;height:22px;border-radius:6px;display:grid;place-items:center;font-weight:900">+</span> Create Video</div>
+    <div style="margin-top:auto;padding:12px;border:1px solid var(--border);border-radius:16px;background:var(--card2)"><small style="color:var(--muted)">V4.2 Responsive<br>Shuffle on open<br>Made for Jesus †</small></div>
+  </div>
+
+  <div class="header"><div class="logo"><div class="logo-mark">†</div> FaithTok V4.2</div><div style="display:flex;gap:18px;font-size:1.3rem"><span onclick="openSearchPage()">🔍</span><span onclick="openSettings()">⋯</span></div></div>
+  <div class="view" id="view"></div>
+
+  <!-- DESKTOP RIGHT PANEL -->
+  <div class="desktop-right">
+    <b style="font-family:Outfit">Discussion Folders</b>
+    <div id="desktopGroups"></div>
+    <hr style="border:0;border-top:1px solid var(--border);margin:8px 0">
+    <b style="font-family:Outfit">All Videos • <span id="desktopVideoCount">0</span></b>
+    <div id="desktopAllVideos" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:400px;overflow-y:auto"></div>
+  </div>
+
+  <div class="bottom">
+    <div class="b-item active" onclick="nav('home')" id="nav-home"><div style="font-size:1.4rem">⌂</div><div class="b-label">Home</div></div>
+    <div class="b-item" onclick="nav('discussion')" id="nav-discussion"><div style="font-size:1.3rem">💬</div><div class="b-label">Discuss</div></div>
+    <div class="b-item" onclick="openUpload()"><div style="width:48px;height:32px;background:var(--text);border-radius:10px;color:var(--bg);display:grid;place-items:center;font-weight:900;font-size:1.4rem">+</div></div>
+    <div class="b-item" onclick="nav('discover')" id="nav-discover"><div style="font-size:1.3rem">◎</div><div class="b-label">Discover</div></div>
+    <div class="b-item" onclick="nav('profile')" id="nav-profile"><div style="font-size:1.3rem">◍</div><div class="b-label">Profile</div></div>
+  </div>
+</div>
+
+<div class="modal" id="searchModal" onclick="if(event.target===this)closeSearchPage()"><div class="box"><div class="handle"></div><input id="searchInput" class="input" placeholder="Search Worship, @user..." oninput="handleLiveSearch(this.value)" style="border-radius:100px"><div id="searchResults"></div><div id="trendingBox"><b>🔥 Trending</b><div id="trendingList" style="margin-top:10px"></div></div><button class="btn btn-sec" style="margin-top:12px" onclick="closeSearchPage()">Close</button></div></div>
+<div class="modal" id="uploadModal" onclick="if(event.target===this)closeUpload()"><div class="box"><div class="handle"></div><b style="font-family:Outfit;font-size:1.2rem">Create Video †</b><div id="uploadUserLabel" style="color:var(--muted);font-size:.8rem;margin:6px 0 12px"></div><select id="uCat" class="input"></select><input id="uTitle" class="input" placeholder="Caption *"><input type="file" id="videoFileInput" accept="video/*" class="input" onchange="handleVideoFile(event)"><div id="filePreview" style="display:none;margin-bottom:10px"><video id="filePrevVideo" controls style="width:100%;height:200px;border-radius:16px;background:#000"></video><small id="fileInfo" style="color:var(--muted)"></small></div><textarea id="uDesc" class="input" placeholder="Description"></textarea><button class="btn btn-primary" id="submitBtn" onclick="submitVideo()">Post Now</button><button class="btn btn-sec" style="margin-top:10px" onclick="closeUpload()">Cancel</button></div></div>
+<div class="modal" id="settingsModal" onclick="if(event.target===this)closeSettings()"><div class="box"><div class="handle"></div><b style="font-family:Outfit;font-size:1.25rem">Settings • V4.2 Responsive</b><div class="setting-row"><div><b>🌙 Dark Mode</b></div><div class="toggle on" id="themeToggle" onclick="toggleTheme()"><div class="toggle-dot"></div></div></div><div class="setting-row"><div><b>🔊 Auto Sound</b></div><div class="toggle on" id="soundToggle" onclick="toggleSoundSetting()"><div class="toggle-dot"></div></div></div><div class="setting-row"><div><b>▶️ Auto Play</b></div><div class="toggle on" id="autoToggle" onclick="toggleAutoSetting()"><div class="toggle-dot"></div></div></div><div style="padding:14px 0"><small style="color:var(--muted)">Responsive: Phone / Tablet / Computer • Made for Jesus</small></div><button class="btn btn-sec" onclick="closeSettings()">Close</button></div></div>
+<div class="modal" id="adminModal" onclick="if(event.target===this)closeAdmin()"><div class="box"><div class="handle"></div><b>🛡️ Secure Admin</b><div id="adminLogin" style="margin-top:12px"><input id="adminPass" type="password" class="input" placeholder="••••••••"><button class="btn btn-primary" onclick="loginAdmin()">Unlock</button></div><div id="adminContent" style="display:none"><input id="adminGroupInput" class="input" placeholder="New discussion folder name"><button class="btn btn-primary" onclick="addDiscussionGroup()">+ Add Folder (Supabase)</button><hr style="margin:12px 0;border:0;border-top:1px solid var(--border)"><input id="adminSearch" class="input" placeholder="Search video to delete..." oninput="filterAdminVideos(this.value)"><div id="pendingList"></div><button class="btn btn-sec" onclick="logoutAdmin()" style="margin-top:12px">Lock</button></div></div></div>
+<div class="modal" id="userProfileModal" onclick="if(event.target===this)closeUserProfile()"><div class="box" style="padding:0;max-height:92vh;overflow-y:auto;border-radius:28px"><div id="userProfileContent"></div></div></div>
+<div class="toast" id="toast"></div>
+<div class="alert-overlay" id="alertOverlay"><div class="alert-box"><div class="alert-icon" id="alertIcon">†</div><div class="alert-title" id="alertTitle"></div><div class="alert-msg" id="alertMsg"></div><div class="alert-actions" id="alertActions"></div></div></div>
+
+<script>
+const SUPABASE_URL="https://fpumooijlfalyyoplyqm.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_cKp-CefxTp_sJYjHH2fPUA_8VBvHXiZ";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const ADMIN_PASSWORD='JUNIOR2008@';
+let videos=[],selectedFile=null,likedVideos=JSON.parse(localStorage.getItem('likedVideos')||'[]'),following=JSON.parse(localStorage.getItem('following')||'[]'),followersMap=JSON.parse(localStorage.getItem('followersMap')||'{}'),currentTopic=null,discussionChannel=null,allAdminVideos=[],autoPlayObserver=null,selectedAvatarFile=null,replyTo=null,deletedForMe=JSON.parse(localStorage.getItem('deletedForMe')||'[]'),msgLikes=JSON.parse(localStorage.getItem('msgLikes')||'{}');
+let currentProfile=JSON.parse(localStorage.getItem('faithtok-profile')||'null');
+let autoSound=true, autoPlay=true;
+const defaultGroups=['Worship','Catholic','Presbyterian','Teaching','Testimony','Prayer'];
+let discussionGroups=JSON.parse(localStorage.getItem('discussionGroups')||JSON.stringify(defaultGroups));
+let allProfiles={},navHistory=['home'];
+
+function shuffleArray(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function showToast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); }
+function showPopup(title,msg,icon='†'){ return new Promise(res=>{ const o=document.getElementById('alertOverlay'); document.getElementById('alertIcon').textContent=icon; document.getElementById('alertTitle').textContent=title; document.getElementById('alertMsg').innerHTML=msg; document.getElementById('alertActions').innerHTML=`<button class="btn btn-primary" id="alertOk" style="flex:1">OK</button>`; o.style.display='flex'; document.getElementById('alertOk').onclick=()=>{ o.style.display='none'; res(true); }; }); }
+function showConfirm(title,msg){ return new Promise(res=>{ const o=document.getElementById('alertOverlay'); document.getElementById('alertIcon').textContent='?'; document.getElementById('alertTitle').textContent=title; document.getElementById('alertMsg').innerHTML=msg; document.getElementById('alertActions').innerHTML=`<button class="btn btn-sec" id="alertNo" style="flex:1">Cancel</button><button class="btn btn-primary" id="alertYes" style="flex:1">Yes</button>`; o.style.display='flex'; document.getElementById('alertNo').onclick=()=>{ o.style.display='none'; res(false); }; document.getElementById('alertYes').onclick=()=>{ o.style.display='none'; res(true); }; }); }
+function openSearchPage(){ document.getElementById('searchModal').style.display='flex'; document.getElementById('searchInput').focus(); renderTrending(); pushHistory('search'); }
+function closeSearchPage(){ document.getElementById('searchModal').style.display='none'; }
+function openSettings(){ document.getElementById('settingsModal').style.display='flex'; pushHistory('settings'); }
+function closeSettings(){ document.getElementById('settingsModal').style.display='none'; }
+function openAdmin(){ document.getElementById('adminModal').style.display='flex'; }
+function closeAdmin(){ document.getElementById('adminModal').style.display='none'; }
+async function loginAdmin(){ if(document.getElementById('adminPass').value===ADMIN_PASSWORD){ document.getElementById('adminLogin').style.display='none'; document.getElementById('adminContent').style.display='block'; loadAdminVideos(); } else { await showPopup('Access Denied','Wrong password','🔒'); } }
+function logoutAdmin(){ document.getElementById('adminLogin').style.display='block'; document.getElementById('adminContent').style.display='none'; document.getElementById('adminPass').value=''; }
+function toggleTheme(){ const cur=document.documentElement.getAttribute('data-theme'); const next=cur==='light'?'dark':'light'; document.documentElement.setAttribute('data-theme',next); localStorage.setItem('faithtok-theme',next); document.getElementById('themeToggle').classList.toggle('on',next==='dark'); }
+function toggleSoundSetting(){ autoSound=!autoSound; document.getElementById('soundToggle').classList.toggle('on',autoSound); }
+function toggleAutoSetting(){ autoPlay=!autoPlay; document.getElementById('autoToggle').classList.toggle('on',autoPlay); }
+
+async function loadDiscussionGroupsFromDB(){
+  try{
+    const {data, error}=await supabaseClient.from('discussion_groups').select('*').order('created_at',{ascending:true});
+    if(!error && data && data.length>0){
+      discussionGroups=data.map(g=>g.name);
+      localStorage.setItem('discussionGroups',JSON.stringify(discussionGroups));
+      const sel=document.getElementById('uCat');
+      if(sel){ sel.innerHTML=discussionGroups.map(g=>`<option>${g}</option>`).join(''); }
+    } else {
+      const sel=document.getElementById('uCat');
+      if(sel){ sel.innerHTML=discussionGroups.map(g=>`<option>${g}</option>`).join(''); }
+    }
+  }catch(e){}
+}
+async function loadVideos(){
+  try{
+    await loadDiscussionGroupsFromDB();
+    const {data}=await supabaseClient.from('videos').select('*').eq('Status','APPROVED').order('created_at',{ascending:false}).limit(150);
+    let fetched = data||[];
+    fetched = shuffleArray([...fetched]);
+    videos=fetched;
+    const {data:profs}=await supabaseClient.from('profiles').select('*');
+    (profs||[]).forEach(p=>{ allProfiles[p.username]=p; });
+  }catch(e){ videos=[]; }
+  renderFeed(); renderDesktopPanels();
+}
+function renderDesktopPanels(){
+  const dg=document.getElementById('desktopGroups');
+  if(dg){ dg.innerHTML=discussionGroups.map(g=>`<div class="group-folder" style="padding:10px;margin-bottom:6px" onclick="openChatGroup('${g}')"><div style="width:32px;height:32px;background:var(--p);border-radius:8px;display:grid;place-items:center;color:#fff">📁</div><div style="flex:1"><b style="font-size:.8rem">${g}</b><br><small style="color:var(--muted)">${videos.filter(v=>v.Category===g).length} videos</small></div></div>`).join(''); }
+  const dv=document.getElementById('desktopVideoCount');
+  if(dv) dv.textContent=videos.length;
+  const dav=document.getElementById('desktopAllVideos');
+  if(dav){ dav.innerHTML=videos.slice(0,12).map(v=>`<div onclick="openVideoFromProfile('${v.id}')" style="aspect-ratio:9/14;background:#000;border-radius:8px;overflow:hidden;position:relative;border:1px solid var(--border);cursor:pointer"><video src="${v.VideoLink}" style="width:100%;height:100%;object-fit:cover" muted></video><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.9));padding:4px"><small style="color:#fff;font-size:.55rem">${v.Title}</small></div></div>`).join(''); }
+}
+async function loadAdminVideos(){
+  const {data}=await supabaseClient.from('videos').select('*').order('created_at',{ascending:false}).limit(120);
+  allAdminVideos=data||[]; renderAdminList(allAdminVideos);
+}
+function renderAdminList(arr){
+  const list=document.getElementById('pendingList');
+  if(!arr.length){ list.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">No videos</div>'; return; }
+  list.innerHTML=arr.map(v=>`<div style="display:flex;gap:10px;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;background:var(--card2)"><video src="${v.VideoLink}" style="width:50px;height:50px;object-fit:cover;border-radius:8px"></video><div style="flex:1"><b style="font-size:.8rem">${v.Title}</b><br><small>@${v.Name}</small><br><button class="btn btn-sec" style="padding:4px 10px;font-size:.7rem;color:var(--red);margin-top:4px;width:auto" onclick="deleteVideo('${v.id}')">Delete</button></div></div>`).join('');
+}
+function filterAdminVideos(q){ if(!q){ renderAdminList(allAdminVideos); return; } const f=allAdminVideos.filter(v=> (v.Title+v.Name).toLowerCase().includes(q.toLowerCase())); renderAdminList(f); }
+async function deleteVideo(id){ const ok=await showConfirm('Delete?','Delete permanently?'); if(!ok) return; await supabaseClient.from('videos').delete().eq('id',id); showToast('Deleted'); loadAdminVideos(); loadVideos(); }
+async function addDiscussionGroup(){
+  const name=document.getElementById('adminGroupInput').value.trim();
+  if(!name){ showPopup('Error','Enter folder name'); return; }
+  const {error}=await supabaseClient.from('discussion_groups').insert([{name:name}]).select();
+  if(error){ if(error.message.includes('duplicate') || error.code=='23505'){ showPopup('Exists','Folder exists'); } else { showPopup('Error', error.message); } return; }
+  document.getElementById('adminGroupInput').value='';
+  showToast('Saved: '+name+' †');
+  await loadDiscussionGroupsFromDB();
+  renderDiscussionFolders(); renderDesktopPanels();
+}
+function pushHistory(p){ navHistory.push(p); history.pushState({page:p},'','#'+p); }
+window.addEventListener('popstate',()=>{
+  const mods=['searchModal','settingsModal','adminModal','userProfileModal','uploadModal'];
+  for(let id of mods){ const el=document.getElementById(id); if(el && el.style.display==='flex'){ el.style.display='none'; return; } }
+  if(currentTopic && document.getElementById('view').innerHTML.includes('wa-wrapper')){ currentTopic=null; renderDiscussionFolders(); return; }
+});
+function renderByName(n){ if(['home','discussion','discover','profile'].includes(n)) nav(n,false); }
+function nav(p,push=true){
+  if(autoPlayObserver) autoPlayObserver.disconnect();
+  if(discussionChannel){ supabaseClient.removeChannel(discussionChannel); discussionChannel=null; }
+  document.querySelectorAll('.b-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.d-nav-item').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('nav-'+p); if(el) el.classList.add('active');
+  const del=document.getElementById('d-nav-'+p); if(del) del.classList.add('active');
+  if(push && navHistory[navHistory.length-1]!==p) pushHistory(p);
+  if(p==='home') renderHome(); if(p==='discover') renderDiscover(); if(p==='profile') renderProfile(); if(p==='discussion'){ currentTopic=null; renderDiscussionFolders(); }
+}
+function renderHome(){
+  document.getElementById('view').innerHTML=`<div style="position:relative;height:100%"><div class="pull-indicator" id="pullIndicator">↓ Pull to shuffle</div><div id="feedView"></div></div>`;
+  loadVideos(); setTimeout(setupPullToRefresh,300);
+}
+function setupPullToRefresh(){
+  const feed=document.getElementById('feedView'); const ind=document.getElementById('pullIndicator'); if(!feed) return;
+  let startY=0,pulling=false;
+  feed.addEventListener('touchstart',e=>{ if(feed.scrollTop===0){ startY=e.touches[0].clientY; pulling=true; } },{passive:true});
+  feed.addEventListener('touchmove',e=>{ if(!pulling) return; const d=e.touches[0].clientY-startY; if(d>0&&d<120){ ind.style.transform=`translateY(${Math.min(d-44,0)+44}px)`; ind.textContent=d>70?'↻ Release':'↓ Pull to shuffle'; } },{passive:true});
+  feed.addEventListener('touchend',e=>{ if(!pulling) return; pulling=false; const d=e.changedTouches[0].clientY-startY; ind.style.transform='translateY(-44px)'; if(d>70){ shuffleArray(videos); renderFeed(); renderDesktopPanels(); showToast('Shuffled 🔀'); } },{passive:true});
+}
+function toggleFollow(username){
+  event.stopPropagation();
+  if(!currentProfile){ showPopup('Profile needed','Create profile to follow','👤'); return; }
+  if(username===currentProfile.username) return;
+  const isF=following.includes(username);
+  if(isF){ following=following.filter(u=>u!==username); followersMap[username]=Math.max(0,(followersMap[username]||1)-1); }
+  else { following.push(username); followersMap[username]=(followersMap[username]||0)+1; }
+  localStorage.setItem('following',JSON.stringify(following)); localStorage.setItem('followersMap',JSON.stringify(followersMap));
+  showToast(isF?'Unfollowed':'Following @'+username+' †');
+  document.querySelectorAll(`[data-follow="${username}"]`).forEach(b=>{ b.className=following.includes(username)?'follow-plus following':'follow-plus'; b.textContent=following.includes(username)?'✓':'+'; });
+}
+function openVideoFromProfile(id){ closeUserProfile(); nav('home'); setTimeout(()=>{ const el=document.getElementById('vid-'+id); if(el){ el.scrollIntoView({behavior:'smooth'}); el.play(); } },600); }
+function renderFeed(){
+  const feed=document.getElementById('feedView'); if(!feed) return;
+  if(!videos.length){ feed.innerHTML=`<div style="text-align:center;padding:80px 20px;color:var(--muted)"><div style="font-size:3rem">†</div><h3>No videos</h3></div>`; return; }
+  feed.innerHTML='';
+  videos.forEach(v=>{
+    const isLiked=likedVideos.includes(v.id); const isFollowing=following.includes(v.Name);
+    const prof=allProfiles[v.Name]||null; const av=prof?.avatar_url?`<img src="${prof.avatar_url}">`:(v.Name||'U')[0].toUpperCase();
+    const div=document.createElement('div'); div.className='post';
+    div.innerHTML=`<video id="vid-${v.id}" src="${v.VideoLink}" loop playsinline preload="auto"></video><div class="vignette"></div><div class="content"><div class="left"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div class="avatar" onclick="openUserProfile('${v.Name}')">${av}</div><span class="username">@${v.Name}</span><span class="category">${v.Category}</span></div><div class="caption">${v.Title}</div><div style="color:#AAB4FF;font-size:.78rem;margin-top:3px">${v.Description||''}</div></div><div class="right"><div class="action"><div class="tiktok-profile-btn" onclick="openUserProfile('${v.Name}')"><div style="width:100%;height:100%;display:grid;place-items:center;overflow:hidden;border-radius:50%">${av}</div><div data-follow="${v.Name}" class="${isFollowing?'follow-plus following':'follow-plus'}" onclick="toggleFollow('${v.Name}')">${isFollowing?'✓':'+'}</div></div></div><div class="action" onclick="likeVideo('${v.id}')"><div class="action-btn ${isLiked?'liked':''}" id="like-${v.id}">${isLiked?'❤️':'♡'}</div><div style="font-size:.68rem;font-weight:700;color:#fff" id="likeCount-${v.id}">${v.Likes||0}</div></div><div class="action" onclick="openChatGroup('${v.Category}')"><div class="action-btn">💬</div><div style="font-size:.6rem;color:#fff">Chat</div></div></div></div>`;
+    feed.appendChild(div);
+  });
+  setTimeout(setupAutoPlay,250);
+}
+function setupAutoPlay(){
+  if(!autoPlay) return;
+  if(autoPlayObserver) autoPlayObserver.disconnect();
+  autoPlayObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      const vid=entry.target;
+      if(entry.isIntersecting){
+        document.querySelectorAll('#feedView video').forEach(v=>{ if(v!==vid) v.pause(); });
+        vid.muted=!autoSound; vid.play().catch(()=>{});
+      } else vid.pause();
+    });
+  },{root:document.getElementById('feedView'),threshold:0.78});
+  document.querySelectorAll('#feedView video').forEach(v=>autoPlayObserver.observe(v));
+}
+async function likeVideo(id){
+  const liked=likedVideos.includes(id); const vid=videos.find(v=>v.id===id); if(!vid) return;
+  if(liked){ likedVideos=likedVideos.filter(x=>x!==id); vid.Likes=Math.max(0,(vid.Likes||1)-1); } else { likedVideos.push(id); vid.Likes=(vid.Likes||0)+1; }
+  localStorage.setItem('likedVideos',JSON.stringify(likedVideos));
+  const el=document.getElementById('likeCount-'+id); if(el) el.textContent=vid.Likes;
+  const btn=document.getElementById('like-'+id); if(btn) btn.textContent=liked?'♡':'❤️';
+  await supabaseClient.from('videos').update({Likes:vid.Likes}).eq('id',id);
+}
+function openChatGroup(t){ nav('discussion'); setTimeout(()=>{ openGroupChat(t); },100); }
+function renderDiscussionFolders(){
+  document.getElementById('view').innerHTML=`<div class="page" style="padding-bottom:80px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><div class="logo-mark" style="width:40px;height:40px">💬</div><div><h2 style="font-family:Outfit">Discussions</h2><small style="color:var(--muted)">Supabase • Tap folder to join</small></div></div><div id="groupsList">${discussionGroups.map(g=>{
+    const count=videos.filter(v=>v.Category===g).length;
+    return `<div class="group-folder" onclick="openGroupChat('${g}')"><div style="width:48px;height:48px;background:linear-gradient(135deg,var(--p),var(--p2));border-radius:12px;display:grid;place-items:center;font-size:1.4rem;color:#fff">📁</div><div style="flex:1"><b>${g}</b><br><small style="color:var(--muted)">${count} videos • Tap to chat</small></div><div style="color:var(--muted)">›</div></div>`;
+  }).join('')}</div></div>`;
+}
+function openGroupChat(groupName){
+  currentTopic=groupName;
+  document.getElementById('view').innerHTML=`<div class="wa-wrapper"><div class="wa-header"><div style="width:36px;height:36px;background:var(--p);border-radius:50%;display:grid;place-items:center;color:#fff;cursor:pointer" onclick="renderDiscussionFolders()">‹</div><div style="width:36px;height:36px;background:linear-gradient(135deg,var(--p),var(--p2));border-radius:50%;display:grid;place-items:center;color:#fff">📁</div><div style="flex:1"><b>${groupName}</b><br><small style="color:var(--muted)">WhatsApp group • ${discussionGroups.length} folders</small></div><div style="font-size:1.2rem" onclick="renderDiscussionFolders()">⋯</div></div><div id="waChatList" class="wa-chat-list"></div><div class="wa-input-bar" id="waInputBar"><div id="waReplyPreview" style="display:none" class="wa-reply-bar"><div id="waReplyText" style="flex:1"></div><div style="cursor:pointer" onclick="cancelReply()">✕</div></div><div style="display:flex;gap:8px;align-items:center"><input id="chatInput" class="input" placeholder="Message #${groupName}..." style="margin:0;flex:1;border-radius:24px" onkeypress="if(event.key==='Enter')sendWaMessage()"><button class="btn btn-primary" style="width:auto;border-radius:50%;padding:0;width:44px;height:44px;display:grid;place-items:center" onclick="sendWaMessage()">➤</button></div></div></div>`;
+  loadWaMessages(groupName);
+}
+async function loadWaMessages(topic){
+  const {data}=await supabaseClient.from('messages').select('*').eq('topic',topic).order('created_at',{ascending:true}).limit(200);
+  const list=document.getElementById('waChatList'); if(!list) return;
+  list.innerHTML=(data||[]).filter(m=>!deletedForMe.includes(m.id)).map(m=>{
+    const prof=allProfiles[m.name]||null; const pic=prof?.avatar_url?`<img src="${prof.avatar_url}">`:m.name[0].toUpperCase();
+    const isMe=m.name===(currentProfile?.username||'');
+    const likes=msgLikes[m.id]||0; const liked=(msgLikes['liked_'+m.id]==true);
+    const replyHtml=m.reply_to?`<div class="wa-reply-preview"><b>${m.reply_to_name}:</b> ${m.reply_to_text}</div>`:'';
+    return `<div class="wa-msg-row ${isMe?'me':''}" data-id="${m.id}" ontouchstart="startSwipe(event,'${m.id}')" ontouchend="endSwipe(event,'${m.id}','${m.name}','${m.message.replace(/'/g,"")}')" onmousedown="startLongPress('${m.id}')" onmouseup="endLongPress()" ontouchstart="startLongPress('${m.id}')" ontouchend="endLongPress()">
+      <div class="wa-avatar" onclick="openUserProfile('${m.name}')">${pic}</div>
+      <div class="wa-bubble">
+        ${!isMe?`<b style="font-size:.78rem;color:var(--p)">${m.name}</b>`:''}
+        ${replyHtml}
+        <div style="font-size:.86rem;margin-top:2px">${m.message}</div>
+        <div class="wa-time">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} <span class="wa-like" onclick="event.stopPropagation(); likeMsg('${m.id}')">${liked?'❤️':'♡'} ${likes||''}</span></div>
+      </div>
+    </div>`;
+  }).join('') || `<div style="text-align:center;padding:40px;color:var(--muted)">No messages yet. Be first to say something in #${topic} †</div>`;
+  list.scrollTop=list.scrollHeight;
+  discussionChannel=supabaseClient.channel('wa-'+topic).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`topic=eq.${topic}`},payload=>{ loadWaMessages(topic); }).subscribe();
+}
+let swipeStartX=0, longPressTimer=null, currentLongId=null;
+function startSwipe(e,id){ swipeStartX=e.touches?e.touches[0].clientX:e.clientX; }
+function endSwipe(e,id,name,text){ const endX=e.changedTouches?e.changedTouches[0].clientX:e.clientX; if(swipeStartX-endX>60){ replyTo={id,name,text}; showReplyPreview(name,text); } }
+function showReplyPreview(name,text){ document.getElementById('waReplyPreview').style.display='flex'; document.getElementById('waReplyText').innerHTML=`<b>Replying to ${name}</b><br>${text.substring(0,60)}`; document.getElementById('chatInput').focus(); }
+function cancelReply(){ replyTo=null; document.getElementById('waReplyPreview').style.display='none'; }
+function startLongPress(id){ currentLongId=id; longPressTimer=setTimeout(async ()=>{
+  const o=document.getElementById('alertOverlay');
+  document.getElementById('alertIcon').textContent='🗑️';
+  document.getElementById('alertTitle').textContent='Message';
+  document.getElementById('alertMsg').innerHTML=`<button class="btn btn-sec" onclick="deleteForMe('${id}')">Delete for me only</button><br><small style="color:var(--muted)">Deletes only for you</small>`;
+  document.getElementById('alertActions').innerHTML=`<button class="btn btn-primary" onclick="document.getElementById('alertOverlay').style.display='none'">Close</button>`;
+  o.style.display='flex';
+},700); }
+function endLongPress(){ clearTimeout(longPressTimer); }
+async function deleteForMe(id){ deletedForMe.push(id); localStorage.setItem('deletedForMe',JSON.stringify(deletedForMe)); document.getElementById('alertOverlay').style.display='none'; loadWaMessages(currentTopic); showToast('Deleted for you'); }
+function likeMsg(id){ if(msgLikes['liked_'+id]){ msgLikes[id]=Math.max(0,(msgLikes[id]||1)-1); delete msgLikes['liked_'+id]; } else { msgLikes[id]=(msgLikes[id]||0)+1; msgLikes['liked_'+id]=true; } localStorage.setItem('msgLikes',JSON.stringify(msgLikes)); loadWaMessages(currentTopic); }
+async function sendWaMessage(){
+  const input=document.getElementById('chatInput'); if(!input.value.trim()) return;
+  if(!currentProfile){ await showPopup('Profile needed','Create profile to chat','👤'); nav('profile'); return; }
+  const payload={topic:currentTopic,name:currentProfile.username,message:input.value.trim()};
+  if(replyTo){ payload.reply_to=replyTo.id; payload.reply_to_name=replyTo.name; payload.reply_to_text=replyTo.text; }
+  await supabaseClient.from('messages').insert([payload]);
+  input.value=''; cancelReply();
+}
+function renderDiscover(){
+  document.getElementById('view').innerHTML=`<div class="page"><div style="display:flex;align-items:center;gap:12px"><div class="logo-mark" style="width:44px;height:44px">†</div><div><h2 style="font-family:Outfit">Discover Faith</h2><small style="color:var(--muted)">Categories + All Videos</small></div></div>
+  <h3 style="margin:18px 0 10px 0;font-family:Outfit">Categories</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${discussionGroups.map(c=>{
+    const cnt=videos.filter(v=>v.Category===c).length;
+    return `<div class="card" style="background:linear-gradient(135deg,var(--p),var(--p2));border:0;padding:16px;cursor:pointer" onclick="nav('home')"><b style="color:#fff">${c}</b><br><small style="color:rgba(255,255,255,.9)">${cnt} videos</small></div>`;
+  }).join('')}</div>
+  <h3 style="margin:18px 0 10px 0;font-family:Outfit">All Videos • ${videos.length} • Shuffled</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${videos.map(v=>`<div onclick="openVideoFromProfile('${v.id}')" style="aspect-ratio:9/14;background:#000;border-radius:12px;overflow:hidden;position:relative;border:1px solid var(--border);cursor:pointer"><video src="${v.VideoLink}" style="width:100%;height:100%;object-fit:cover" muted></video><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.9));padding:6px"><small style="color:#fff;font-size:.6rem;line-height:1.1;display:block">${v.Title}</small><small style="color:#AAB4FF;font-size:.55rem">@${v.Name}</small></div></div>`).join('') || '<small>No videos</small>'}</div>
+  </div>`;
+}
+function openUserProfile(username){
+  const prof=allProfiles[username]||{username,display_name:username,bio:'FaithTok family †',location:'Yaoundé',avatar_url:null};
+  const userVideos=videos.filter(v=>v.Name===username);
+  const totalLikes=userVideos.reduce((s,v)=>s+(v.Likes||0),0);
+  const followersCount=(followersMap[username]||0)+Math.floor(totalLikes/2+15);
+  const isFollowing=following.includes(username);
+  const avatarBig=prof.avatar_url?`<img src="${prof.avatar_url}" style="width:100%;height:100%;object-fit:cover">`:prof.username[0].toUpperCase();
+  document.getElementById('userProfileContent').innerHTML=`
+    <div style="height:110px;background:linear-gradient(135deg,var(--p),var(--p2));position:relative"><div style="position:absolute;top:10px;right:12px;width:32px;height:32px;background:rgba(0,0,0,.35);border-radius:50%;display:grid;place-items:center;color:#fff;cursor:pointer" onclick="closeUserProfile()">✕</div></div>
+    <div style="padding:0 20px 20px 20px;text-align:center;margin-top:-45px">
+      <div style="width:90px;height:90px;border-radius:50%;border:4px solid var(--card);background:var(--p);margin:0 auto;overflow:hidden;display:grid;place-items:center;font-size:2rem;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.3)">${avatarBig}</div>
+      <h2 style="font-family:Outfit;margin-top:10px;font-size:1.3rem">@${prof.username}</h2><b>${prof.display_name}</b><br><small style="color:var(--muted)">${prof.location||'Yaoundé'} • ${prof.bio||''}</small>
+      <div style="margin-top:10px"><button class="btn ${isFollowing?'btn-sec':'btn-primary'}" style="width:auto;padding:8px 24px;border-radius:100px" onclick="toggleFollow('${username}'); setTimeout(()=>openUserProfile('${username}'),100)">${isFollowing?'✓ Following':' + Follow'}</button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px"><div class="card" style="margin:0;padding:10px"><b>${userVideos.length}</b><br><small style="color:var(--muted)">Videos</small></div><div class="card" style="margin:0;padding:10px"><b>${totalLikes}</b><br><small style="color:var(--muted)">Likes</small></div><div class="card" style="margin:0;padding:10px"><b>${followersCount}</b><br><small style="color:var(--muted)">Followers</small></div></div>
+      <div style="text-align:left;margin-top:18px"><div style="display:flex;justify-content:space-between"><b>Videos • ${userVideos.length}</b><small style="color:var(--muted)">Tap to watch</small></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">${userVideos.map(v=>`<div onclick="openVideoFromProfile('${v.id}')" style="aspect-ratio:9/14;background:#000;border-radius:12px;overflow:hidden;position:relative;border:1px solid var(--border);cursor:pointer"><video src="${v.VideoLink}" style="width:100%;height:100%;object-fit:cover" muted></video><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));padding:5px"><small style="color:#fff;font-size:.6rem">${v.Title}</small></div></div>`).join('') || '<div style="grid-column:1/4;text-align:center;padding:20px;color:var(--muted)">No videos</div>'}</div></div>
+    </div>`;
+  document.getElementById('userProfileModal').style.display='flex'; pushHistory('user-'+username);
+}
+function closeUserProfile(){ document.getElementById('userProfileModal').style.display='none'; }
+function handleLiveSearch(q){
+  const lower=q.toLowerCase().trim(); const res=document.getElementById('searchResults');
+  if(lower==='adminfaith'){ closeSearchPage(); openAdmin(); document.getElementById('searchInput').value=''; return; }
+  if(!lower){ res.innerHTML=''; document.getElementById('trendingBox').style.display='block'; return; }
+  document.getElementById('trendingBox').style.display='none';
+  const mv=videos.filter(v=> (v.Title+v.Category+v.Name).toLowerCase().includes(lower)).slice(0,5);
+  const mu=Object.values(allProfiles).filter(p=> p.username.toLowerCase().includes(lower)).slice(0,3);
+  let html=mu.map(u=>`<div class="search-item" onclick="openUserProfile('${u.username}');closeSearchPage()"><div class="s-icon" style="overflow:hidden">${u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover">`:u.username[0]}</div><div><b>@${u.username}</b></div></div>`).join('')+mv.map(v=>`<div class="search-item" onclick="closeSearchPage();openVideoFromProfile('${v.id}')"><div class="s-icon" style="overflow:hidden"><video src="${v.VideoLink}" style="width:100%;height:100%;object-fit:cover"></video></div><div><b>${v.Title}</b><br><small>@${v.Name}</small></div></div>`).join('');
+  res.innerHTML=html||`<div style="text-align:center;padding:20px;color:var(--muted)">No results</div>`;
+}
+function renderTrending(){ const box=document.getElementById('trendingList'); box.innerHTML=discussionGroups.map(c=>`<div class="search-item" onclick="nav('home')"><div class="s-icon">#</div><div><b>${c}</b></div></div>`).join(''); }
+function handleVideoFile(e){ const f=e.target.files[0]; if(!f) return; selectedFile=f; const url=URL.createObjectURL(f); document.getElementById('filePreview').style.display='block'; document.getElementById('filePrevVideo').src=url; document.getElementById('fileInfo').textContent=`${f.name} • ${(f.size/1024/1024).toFixed(1)}MB`; }
+function handleAvatarFile(e){ const f=e.target.files[0]; if(!f) return; selectedAvatarFile=f; const url=URL.createObjectURL(f); const img=document.getElementById('avatarPreviewImg'); if(img) img.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`; }
+function openUpload(){ if(!currentProfile){ showPopup('Profile needed','Create profile first','👤'); nav('profile'); return; } document.getElementById('uploadUserLabel').textContent=`Posting as @${currentProfile.username}`; document.getElementById('uploadModal').style.display='flex'; pushHistory('upload'); }
+function closeUpload(){ document.getElementById('uploadModal').style.display='none'; }
+function renderProfile(){
+  if(!currentProfile){
+    document.getElementById('view').innerHTML=`<div class="page"><div style="text-align:center;padding:20px 0"><div class="profile-pic-big" id="avatarPreviewImg" onclick="document.getElementById('avatarFileInput').click()">+</div><input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarFile(event)"><h2 style="font-family:Outfit;margin-top:14px">Create Profile</h2></div><div class="card"><input id="pUsername" class="input" placeholder="Username *"><input id="pDisplay" class="input" placeholder="Display name *"><input id="pLocation" class="input" placeholder="Location"><textarea id="pBio" class="input" placeholder="Bio"></textarea><button class="btn btn-primary" onclick="createProfile()">Create</button></div></div>`;
+  } else {
+    const myVids=videos.filter(v=>v.Name===currentProfile.username); const totalLikes=myVids.reduce((s,v)=>s+(v.Likes||0),0); const followersCount=(followersMap[currentProfile.username]||0)+Math.floor(totalLikes/2+15);
+    const av=currentProfile.avatar_url?`<img src="${currentProfile.avatar_url}" style="width:100%;height:100%;object-fit:cover">`:currentProfile.username[0].toUpperCase();
+    document.getElementById('view').innerHTML=`<div class="page" style="padding-top:0"><div style="height:90px;background:linear-gradient(135deg,var(--p),var(--p2))"></div><div style="text-align:center;margin-top:-45px"><div class="profile-pic-big">${av}</div><h2 style="font-family:Outfit;margin-top:10px">@${currentProfile.username}</h2><b>${currentProfile.display_name}</b><br><small style="color:var(--muted)">${currentProfile.location||''} • ${currentProfile.bio||''}</small><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px"><div class="card" style="margin:0;padding:10px"><b>${myVids.length}</b><br><small>Videos</small></div><div class="card" style="margin:0;padding:10px"><b>${totalLikes}</b><br><small>Likes</small></div><div class="card" style="margin:0;padding:10px"><b>${followersCount}</b><br><small>Followers</small></div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px"><button class="btn btn-primary" onclick="openUpload()">+ Post</button><button class="btn btn-sec" onclick="editProfile()">Edit</button></div><div style="margin-top:18px"><b>Your Videos • ${myVids.length}</b><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">${myVids.map(v=>`<div onclick="openVideoFromProfile('${v.id}')" style="aspect-ratio:9/14;background:#000;border-radius:12px;overflow:hidden;position:relative;border:1px solid var(--border)"><video src="${v.VideoLink}" style="width:100%;height:100%;object-fit:cover" muted></video></div>`).join('')||'<div style="grid-column:1/4;text-align:center;padding:20px;color:var(--muted)">No videos</div>'}</div></div></div>`;
+  }
+}
+async function createProfile(){
+  const u=document.getElementById('pUsername').value.trim().toLowerCase().replace(/\s+/g,'_'); const d=document.getElementById('pDisplay').value.trim();
+  if(!u||!d){ await showPopup('Missing','Username and display required'); return; }
+  let avUrl=null;
+  if(selectedAvatarFile){ const fn=`${u}_${Date.now()}.jpg`; const {error}=await supabaseClient.storage.from('avatars').upload(fn,selectedAvatarFile); if(error){ await showPopup('Failed',error.message); return; } const {data}=supabaseClient.storage.from('avatars').getPublicUrl(fn); avUrl=data.publicUrl; } else { await showPopup('Photo required','Add profile picture'); return; }
+  const prof={username:u,display_name:d,bio:document.getElementById('pBio').value,location:document.getElementById('pLocation').value,avatar_url:avUrl,avatar_color:'#7C4DFF'};
+  const {error}=await supabaseClient.from('profiles').insert([prof]); if(error){ await showPopup('Error',error.message); return; }
+  currentProfile=prof; localStorage.setItem('faithtok-profile',JSON.stringify(prof)); allProfiles[u]=prof; showToast('Profile created †'); renderProfile();
+}
+function editProfile(){
+  const pic=currentProfile.avatar_url?`<img src="${currentProfile.avatar_url}" style="width:100%;height:100%;object-fit:cover">`:currentProfile.username[0];
+  document.getElementById('view').innerHTML=`<div class="page"><h2 style="font-family:Outfit">Edit Profile</h2><div style="text-align:center;margin:14px 0"><div class="profile-pic-big" id="avatarPreviewImg" onclick="document.getElementById('avatarFileInput2').click()">${pic}</div><input type="file" id="avatarFileInput2" accept="image/*" style="display:none" onchange="handleAvatarFile(event)"></div><div class="card"><input id="pUsername" class="input" value="${currentProfile.username}" disabled><input id="pDisplay" class="input" value="${currentProfile.display_name}"><input id="pLocation" class="input" value="${currentProfile.location||''}"><textarea id="pBio" class="input">${currentProfile.bio||''}</textarea><button class="btn btn-primary" onclick="updateProfile()">Save</button><button class="btn btn-sec" style="margin-top:10px" onclick="renderProfile()">Cancel</button></div></div>`;
+}
+async function updateProfile(){
+  let avUrl=currentProfile.avatar_url;
+  if(selectedAvatarFile){ const fn=`${currentProfile.username}_${Date.now()}.jpg`; await supabaseClient.storage.from('avatars').upload(fn,selectedAvatarFile); const {data}=supabaseClient.storage.from('avatars').getPublicUrl(fn); avUrl=data.publicUrl; }
+  await supabaseClient.from('profiles').update({display_name:document.getElementById('pDisplay').value,location:document.getElementById('pLocation').value,bio:document.getElementById('pBio').value,avatar_url:avUrl}).eq('username',currentProfile.username);
+  currentProfile={...currentProfile,display_name:document.getElementById('pDisplay').value,location:document.getElementById('pLocation').value,bio:document.getElementById('pBio').value,avatar_url:avUrl}; localStorage.setItem('faithtok-profile',JSON.stringify(currentProfile)); allProfiles[currentProfile.username]=currentProfile; selectedAvatarFile=null; showToast('Updated †'); renderProfile();
+}
+async function submitVideo(){
+  const cat=document.getElementById('uCat').value; const title=document.getElementById('uTitle').value.trim(); const desc=document.getElementById('uDesc').value.trim();
+  if(!title||!selectedFile){ await showPopup('Missing','Caption and video required'); return; }
+  const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Uploading...';
+  try{
+    const fn=`${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+    const {error}=await supabaseClient.storage.from('videos').upload(fn,selectedFile); if(error) throw error;
+    const {data:urlData}=supabaseClient.storage.from('videos').getPublicUrl(fn);
+    await supabaseClient.from('videos').insert([{Name:currentProfile.username,Category:cat,Title:title,Description:desc,VideoLink:urlData.publicUrl,Status:'APPROVED',Likes:0,Location:currentProfile.location||'Yaoundé'}]);
+    closeUpload(); showToast('Posted †'); loadVideos();
+  }catch(e){ await showPopup('Failed',e.message); } finally{ btn.disabled=false; btn.textContent='Post Now'; }
+}
+renderHome();
+const savedTheme=localStorage.getItem('faithtok-theme')||'dark'; document.documentElement.setAttribute('data-theme',savedTheme);
+document.body.addEventListener('click',()=>{ document.querySelectorAll('#feedView video').forEach(v=>{ v.muted=!autoSound; }); },{once:true});
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }
+history.pushState({page:'home'},'','#home');
+</script>
+</body>
+</html>
